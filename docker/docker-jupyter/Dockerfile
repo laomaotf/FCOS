@@ -1,4 +1,4 @@
-ARG CUDA="9.0"
+ARG CUDA="10.2"
 ARG CUDNN="7"
 
 FROM nvidia/cuda:${CUDA}-cudnn${CUDNN}-devel-ubuntu16.04
@@ -7,13 +7,19 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 
 # install basics
 RUN apt-get update -y \
- && apt-get install -y apt-utils git curl ca-certificates bzip2 cmake tree htop bmon iotop g++
+ && apt-get install -y apt-utils git curl wget ca-certificates bzip2 cmake tree htop bmon iotop g++
 
 # Install Miniconda
-RUN curl -so /miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x /miniconda.sh \
- && /miniconda.sh -b -p /miniconda \
- && rm /miniconda.sh
+#RUN curl -so /miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+# && chmod +x /miniconda.sh \
+# && /miniconda.sh -b -p /miniconda \
+# && rm /miniconda.sh
+
+
+RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && chmod +x /Miniconda3-latest-Linux-x86_64.sh \
+ && bash /Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda \
+ && rm /Miniconda3-latest-Linux-x86_64.sh
 
 ENV PATH=/miniconda/bin:$PATH
 
@@ -28,10 +34,10 @@ ENV PATH=$CONDA_PREFIX/bin:$PATH
 ENV CONDA_AUTO_UPDATE_CONDA=false
 
 RUN conda install -y ipython
-RUN pip install ninja yacs cython matplotlib jupyter
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple ninja yacs cython matplotlib jupyter
 
-# Install PyTorch 1.0 Nightly and OpenCV
-RUN conda install -y pytorch-nightly -c pytorch \
+# Install PyTorch 1.8.1 Nightly and OpenCV
+RUN pip3 install torch==1.8.2 torchvision==0.9.2 --extra-index-url https://download.pytorch.org/whl/lts/1.8/cu102 -i https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/linux-64/ \
  && conda install -y opencv -c menpo \
  && conda clean -ya
 
@@ -39,29 +45,29 @@ WORKDIR /root
 
 USER root
 
-RUN mkdir /notebooks
+#RUN mkdir /notebooks
 
-WORKDIR /notebooks
+#WORKDIR /notebooks
 
 # Install TorchVision master
-RUN git clone https://github.com/pytorch/vision.git \
- && cd vision \
- && python setup.py install
+#RUN git clone https://github.com/pytorch/vision.git \
+# && cd vision \
+# && python setup.py install
 
 # install pycocotools
-RUN git clone https://github.com/cocodataset/cocoapi.git \
- && cd cocoapi/PythonAPI \
- && python setup.py build_ext install
+#RUN git clone https://github.com/cocodataset/cocoapi.git \
+# && cd cocoapi/PythonAPI \
+# && python setup.py build_ext install
 
 # install PyTorch Detection
-RUN git clone https://github.com/facebookresearch/maskrcnn-benchmark.git \
- && cd maskrcnn-benchmark \
- && python setup.py build develop
+#RUN git clone https://github.com/facebookresearch/maskrcnn-benchmark.git \
+# && cd maskrcnn-benchmark \
+# && python setup.py build develop
 
-RUN jupyter notebook --generate-config
+#RUN jupyter notebook --generate-config
 
-ENV CONFIG_PATH="/root/.jupyter/jupyter_notebook_config.py"
+#ENV CONFIG_PATH="/root/.jupyter/jupyter_notebook_config.py"
 
-COPY "jupyter_notebook_config.py" ${CONFIG_PATH}
+#COPY "jupyter_notebook_config.py" ${CONFIG_PATH}
 
-ENTRYPOINT ["sh", "-c", "jupyter notebook --allow-root -y --no-browser --ip=0.0.0.0 --config=${CONFIG_PATH}"]
+#ENTRYPOINT ["sh", "-c", "jupyter notebook --allow-root -y --no-browser --ip=0.0.0.0 --config=${CONFIG_PATH}"]
