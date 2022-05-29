@@ -41,6 +41,15 @@ RUN pip3 install torch==1.8.2 torchvision==0.9.2 --extra-index-url https://downl
  && conda install -y opencv -c menpo \
  && conda clean -ya
 
+
+#improve GDLIBC to newer
+RUN apt-get install software-properties-common \
+ && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+ && apt-get update \
+ && apt-get install -y gcc-4.9
+ && apt-get upgrade -y libstdc++6
+
+
 WORKDIR /root
 
 USER root
@@ -55,9 +64,9 @@ USER root
 # && python setup.py install
 
 # install pycocotools
-#RUN git clone https://github.com/cocodataset/cocoapi.git \
-# && cd cocoapi/PythonAPI \
-# && python setup.py build_ext install
+RUN git clone https://github.com/cocodataset/cocoapi.git \
+ && cd cocoapi/PythonAPI \
+ && python setup.py build_ext install
 
 # install PyTorch Detection
 #RUN git clone https://github.com/facebookresearch/maskrcnn-benchmark.git \
